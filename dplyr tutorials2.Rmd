@@ -1,0 +1,236 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r loadingdata}
+table.earthwormdata <- read.csv("C:/Users/Asus/Desktop/dplyr tutorials/Five_sites_Earthworms_India_ZBNF 5 Oct2020.csv")
+
+```
+
+```{r setup}
+library(dplyr)
+
+```
+
+```{r missingValues}
+any(is.na(table.earthwormdata))
+```
+
+```{r totalNumberofMissingValues}
+sum(is.na(table.earthwormdata)) #checking for total number of missing values in the entire dataframe
+```
+
+```{r missingValColumn}
+sum(is.na(table.earthwormdata$latitude)) #checking for missing values in a particular column
+```
+
+```{r}
+na.omit(table.earthwormdata) #eliminating missing values completely from the df
+na.omit(table.earthwormdata$zbnf_years) #eliminating missing values completely from a particular column
+```
+```{r}
+library(tidyr)
+```
+```{r separateColumns}
+table2 <- separate(data = table.earthwormdata, col = SubmissionDate, c("SubmissionDate1","Time"), sep = "-")
+View(table2)
+```
+
+```{r reloading data}
+table.earthwormdata <- read.csv("C:/Users/Asus/Desktop/dplyr tutorials/Five_sites_Earthworms_India_ZBNF 5 Oct2020.csv")
+```
+
+```{r ColumnSum}
+table.earthwormdata <- table.earthwormdata%>%
+  colSums(table.earthwormdata$obs_subp1.num_middens,obs_subp2.num_middens,obs_subp3.num_middens,obs_subp4.num_middens)
+```
+
+```{r rowSum middens}
+
+  data = select(table.earthwormdata, obs_subp1.num_middens,  obs_subp2.num_middens, obs_subp3.num_middens, obs_subp4.num_middens)
+  
+  View(data)
+rowSums(data)  
+```
+
+```{r rowSum adult earthworms}
+data2 = select(table.earthwormdata, obs_subp1.num_adult_earthworms, obs_subp2.num_adult_earthworms, obs_subp3.num_adult_earthworms, obs_subp4.num_adult_earthworms)
+
+View (data2)
+rowSums(data2)
+```
+
+```{r rowSum juvenile earthworms}
+data3 = select(table.earthwormdata, obs_subp1.num_juvenile_warthworms, obs_subp2.num_juvenile_warthworms, obs_subp3.num_juvenile_warthworms, obs_subp4.num_juvenile_warthworms)
+
+View (data3)
+rowSums(data3)
+
+```
+
+```{r rowSum vertical burrows}
+data4 = select(table.earthwormdata, obs_subp1.num_vertical_burrows, obs_subp2.num_vertical_burrows, obs_subp3.num_vertical_burrows, obs_subp4.num_vertical_burrows)
+
+View (data4)
+rowSums(data4)
+
+```
+
+```{r presence of casts or eggs}
+data5 = select(table.earthwormdata, obs_subp1.casts_eggs, obs_subp2.casts_eggs, obs_subp3.casts_eggs, obs_subp4.casts_eggs)
+
+View (data5)
+
+```
+
+```{r adding columns to dataframe}
+table.earthwormdata %>%
+  mutate(table.earthwormdata,df2) -> table.earthwormdata_updated
+   
+View(table.earthwormdata_updated)
+```
+
+```{r creating new dataframe}
+a <- c(data)
+b <- c(data2)
+c <- c(data3)
+d <- c(data4)
+
+df <- data.frame(a,b,c,d)
+View(df)
+
+```
+
+```{r new dataframe with sum of obs}
+a <- c(rowSums(data))
+b <- c(rowSums(data2))
+c <- c(rowSums(data3))
+d <- c(rowSums(data4))
+
+df2 <- data.frame(a,b,c,d)
+View(df2)
+
+```
+
+```{r renaming the columns}
+table.earthwormdata_updated %>% rename(sum_middens = a, sum_adult_earthworms = b, sum_juvenile_earthworms = c, sum_vertical_burrows = d) -> table.earthwormdata_updated2
+
+View(table.earthwormdata_updated2)
+```
+
+```{r separate SubmissionDate}
+table.earthwormdata_updated2$Date <- as.Date(table.earthwormdata_updated2$SubmissionDate)
+table.earthwormdata_updated2$Time <- format(table.earthwormdata_updated2$SubmissionDate, "%H:%M")
+```
+
+```{r separate SubmissionDate into two columns}
+new <- do.call(rbind, strsplit(as.character.Date(table.earthwormdata_updated2$SubmissionDate)," ")) 
+
+View(new)
+```
+```{r separate startCol}
+newStart <- do.call(rbind, strsplit(as.character.Date(table.earthwormdata_updated2$start)," ")) 
+
+View(newStart)
+```
+
+```{r extractCol}
+newStart2 <- newStart [,1:2]
+View(newStart2)
+
+#naming the columns in the new matrix
+colnames(newStart2) <- c("StartDate","StartTime")
+View(newStart2)
+```
+
+```{r extract2columns from matrix}
+new2 <- new [,1:2]
+View(new2)
+
+#naming the columns in the new matrix
+colnames(new2) <- c("SubmissionDate","SubmissionTime")
+View(new2)
+
+```
+
+
+```{r}
+table.earthwormdata_updated3 <- colnames(table.earthwormdata_updated2)[colnames(table.earthwormdata_updated2)=="SubmissionDate"] <- "new2"
+View(table.earthwormdata_updated3)
+
+#didn't give me what I wanted, instead it replaced everything with the name 'new2'
+```
+
+```{r removeVariables}
+#removing SubmissionDate and Start columns
+table.earthwormdata_updated2 <- subset(table.earthwormdata_updated2, select = -c(SubmissionDate, start))
+View(table.earthwormdata_updated2)
+```
+
+```{r convertMatrix to Dataframe}
+newSubmission = as.data.frame(new2,row.names = NULL)
+View(newSubmission)
+
+newStart3 = as.data.frame(newStart2,row.names = NULL)
+View(newStart3)
+```
+
+
+```{r addDataframes}
+#adding new2 (new Submission date and time) and newStart(new start time and date)
+table.earthwormdata_updated2 %>%
+  mutate(table.earthwormdata_updated2,newSubmission) -> table.earthwormdata_updated3
+View(table.earthwormdata_updated3)
+
+table.earthwormdata_updated3 %>%
+  mutate(table.earthwormdata_updated3,newStart3) -> table.earthwormdata_updated4
+View(table.earthwormdata_updated4)
+```
+
+```{r reorderColumns}
+table.earthwormdata_updated5 <- table.earthwormdata_updated4 %>%
+  select(SubmissionDate,SubmissionTime,StartDate,StartTime,everything())
+View(table.earthwormdata_updated5)
+```
+
+```{r separate endCol}
+newEnd <- do.call(rbind, strsplit(as.character.Date(table.earthwormdata_updated2$end)," ")) 
+
+View(newEnd)
+```
+
+```{r extract and name cols}
+newEnd2 <- newEnd [,1:2]
+View(newEnd2)
+
+#naming the columns in the new matrix
+colnames(newEnd2) <- c("EndDate","EndTime")
+View(newEnd2)
+
+#convert the resulting matrix to a dataframe
+newEnd3 = as.data.frame(newEnd2,row.names = NULL)
+View(newEnd3)
+
+#add new dataframe to table.earthwormdata_updated5
+table.earthwormdata_updated5 %>%
+  mutate(table.earthwormdata_updated5,newEnd3) -> table.earthwormdata_updated6
+View(table.earthwormdata_updated6)
+
+```
+
+```{r replace endCol}
+#remove end column
+table.earthwormdata_updated6 <- subset(table.earthwormdata_updated6, select = -(end))
+View(table.earthwormdata_updated6)
+```
+
+```{r duration}
+#convert the string columns to dates
+table.earthwormdata_updated$start <- as.POSIXct(table.earthwormdata_updated$start, format = '%m/%d/%Y %H:%M')
+table.earthwormdata_updated$end <- as.POSIXct(table.earthwormdata_updated$end, format = '%m/%d/%Y %H:%M')
+
+#calculating how much time the collection process took by subtracting start column from end column
+diffs <- difftime(table.earthwormdata_updated$end, table.earthwormdata_updated$start,units = "days") 
+View(diffs)
+```
